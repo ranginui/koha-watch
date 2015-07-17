@@ -87,7 +87,7 @@ static void main_window_unload(Window *window) {
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
   
-  // Get weather update every 30 minutes
+  // Get jenkins update every 30 minutes
   if(tick_time->tm_min % 30 == 0) {
     // Begin dictionary
     DictionaryIterator *iter;
@@ -103,9 +103,9 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   // Store incoming information
-  static char temperature_buffer[8];
-  static char conditions_buffer[32];
-  static char weather_layer_buffer[32];
+  static char name_buffer[8];
+  static char status_buffer[32];
+  static char jenkins_layer_buffer[32];
   
   // Read first item
   Tuple *t = dict_read_first(iterator);
@@ -115,10 +115,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     // Which key was received?
     switch(t->key) {
     case KEY_NAME:
-      snprintf(temperature_buffer, sizeof(temperature_buffer), "%s", t->value->cstring);
+      snprintf(name_buffer, sizeof(name_buffer), "%s", t->value->cstring);
       break;
     case KEY_COLOUR:
-      snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", t->value->cstring);
+      snprintf(status_buffer, sizeof(status_buffer), "%s", t->value->cstring);
       break;
     default:
       APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
@@ -130,8 +130,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   }
   
   // Assemble full string and display
-  snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s, %s", temperature_buffer, conditions_buffer);
-  text_layer_set_text(s_jenkins_layer, weather_layer_buffer);
+  snprintf(jenkins_layer_buffer, sizeof(jenkins_layer_buffer), "%s, %s", name_buffer, status_buffer);
+  text_layer_set_text(s_jenkins_layer, jenkins_layer_buffer);
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
