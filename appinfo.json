@@ -1,5 +1,8 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "KEY_COLOUR": 1,
+        "KEY_NAME": 0
+    },
     "capabilities": [
         ""
     ],
