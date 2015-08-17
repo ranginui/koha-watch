@@ -4,10 +4,10 @@
 #define KEY_COLOUR 1
   
 static Window *s_main_window;
-static TextLayer *s_time_layer;
+static TextLayer *s_time_layer, *s_date_layer;
 static TextLayer *s_jenkins_layer;
 
-static GFont s_jenkins_font;
+static GFont s_jenkins_font, s_date_font;
 
 static BitmapLayer *s_background_layer;
 static GBitmap *s_background_bitmap;
@@ -22,7 +22,7 @@ static void update_time() {
 
   // Write the current hours and minutes into the buffer
   if(clock_is_24h_style() == true) {
-    //Use 2h hour format
+    //Use 24h hour format
     strftime(buffer, sizeof("00:00"), "%H:%M", tick_time);
   } else {
     //Use 12 hour format
@@ -31,6 +31,13 @@ static void update_time() {
 
   // Display this time on the TextLayer
   text_layer_set_text(s_time_layer, buffer);
+  
+  // Copy date into buffer from tm structure
+  static char date_buffer[16];
+  strftime(date_buffer, sizeof(date_buffer), "%a %d %b", tick_time);
+
+  // Show the date
+  text_layer_set_text(s_date_layer, date_buffer);
 }
 
 static void main_window_load(Window *window) {
@@ -53,7 +60,20 @@ static void main_window_load(Window *window) {
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
   
-  // Create temperature Layer
+  // Create date TextLayer
+  s_date_layer = text_layer_create(GRect(0, 100, 144, 30));
+  text_layer_set_text_color(s_date_layer, GColorWhite);
+  text_layer_set_background_color(s_date_layer, GColorClear);
+  text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
+
+  // Add to Window
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_date_layer));
+  
+  // Create font for date
+  s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_PERFECT_DOS_20));
+  text_layer_set_font(s_date_layer, s_date_font);
+  
+  // Create jenkins Layer
   s_jenkins_layer = text_layer_create(GRect(0, 130, 144, 25));
   text_layer_set_background_color(s_jenkins_layer, GColorClear);
   text_layer_set_text_color(s_jenkins_layer, GColorWhite);
@@ -79,9 +99,13 @@ static void main_window_unload(Window *window) {
   // Destroy TextLayer
   text_layer_destroy(s_time_layer);
   
-  // Destroy weather elements
+  // Destroy jenkins elements
   text_layer_destroy(s_jenkins_layer);
   fonts_unload_custom_font(s_jenkins_font);
+  
+  // Destroy date elements
+  fonts_unload_custom_font(s_date_font);
+  text_layer_destroy(s_date_layer);
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
